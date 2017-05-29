@@ -1,29 +1,59 @@
 import { runQuery } from "./queryHelpers";
 
-import { MongoClient } from 'mongodb'
-import { Edge, GitHubUser } from "./gitHubTypes";
-import { findOrCreateOrganization } from "./mongoHelpers";
+import { MongoClient, Db } from 'mongodb'
+import { Edge, GitHubUser, EdgePageResponse, Organization } from "./gitHubTypes";
+import { findOrCreateOrganization, insertUsers } from "./mongoHelpers";
 import { readFileContents } from "./util";
 
 const MongoUrl = 'mongodb://localhost:4000/users';
 
-async function scrapeOrgMembers(orgName:string) {
-  let db = await MongoClient.connect(MongoUrl);
-  let organization = await findOrCreateOrganization(db, orgName);
-
+async function getOrgMembersPage(orgName:string, organizationId:any, pageCursor:string) {
   return runQuery("organization-members", {
-    org_name: orgName
+    org_name: orgName,
+    page_cursor: pageCursor
   }).then((res) => {
-    let userEdges:Edge<GitHubUser>[] = res.organization.members.edges;
-    let users = [];
-    for (let userEdge of userEdges) {
-      const user = userEdge.node;
-      user.organization = organization._id;
-      users.push(user);
+    let org:Organization = res.organization;
+    for (let userEdge of org.members.edges) {
+      userEdge.node.organization = organizationId;
     }
-    return db.collection('users').insertMany(users);
+
+    return org.members; 
   });
 }
+
+// Finds all org members, pages through responses and inserts into Mongo
+async function scrapeOrgMembers(db:Db, orgName:string) {
+  let organization = await findOrCreateOrganization(db, orgName);
+
+  let pageCursor:string;
+  while (true) {
+    let orgMembersPage = await getOrgMembersPage(orgName, organization._id, pageCursor);    
+    await insertUsers(db, orgMembersPage);
+
+    if (orgMembersPage.pageInfo.hasNextPage) {
+      pageCursor = orgMembersPage.pageInfo.endCursor;
+    } else {
+      console.log(`Finished scraping ${orgName} members`)
+      break;
+    }
+  }
+}
+
+async function scrapeAllOrganizations(db:Db) {
+  let orgListRawTxt = await readFileContents(`data/organizations.txt`);
+  let orgNames = orgListRawTxt.split("\n");
+  for (let org of orgNames) {
+    await scrapeOrgMembers(db, org);
+  }
+}
+
+MongoClient
+  .connect(MongoUrl)
+  .then(scrapeAllOrganizations)
+
+
+
+
 
 
 // runQuery("repo-watchers", {
@@ -32,17 +62,3 @@ async function scrapeOrgMembers(orgName:string) {
 // }).then((res) => {
 //   debugger
 // });
-
-
-
-
-async function scrapeAllOrganizations() {
-  let orgListRawTxt = await readFileContents(`data/organizations.txt`);
-  let orgNames = orgListRawTxt.split("\n");
-  for (let org of orgNames) {
-    await scrapeOrgMembers(org);
-  }
-}
-
-
-scrapeAllOrganizations();

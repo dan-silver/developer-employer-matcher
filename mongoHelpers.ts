@@ -1,4 +1,5 @@
 import { Db } from "mongodb";
+import { EdgePageResponse, GitHubUser } from "./gitHubTypes";
 
 export async function findOrCreateOrganization(db: Db, orgName: string) {
   // @todo, create or find in one operation
@@ -13,4 +14,8 @@ export async function findOrCreateOrganization(db: Db, orgName: string) {
 
   return organizations.findOne({name: orgName})
 
+}
+
+export async function insertUsers(db:Db, users:EdgePageResponse<GitHubUser>) {
+    return db.collection('users').insertMany(users.edges.map((edge) => edge.node));
 }

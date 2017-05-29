@@ -1,9 +1,10 @@
-microsoft
+vmware
 azure
 dotnet
 aspnet
 officedev
-MicrosoftEdge
+microsoftedge
+microsoftgraph
 facebook
 twitter
 netflix
@@ -22,6 +23,7 @@ github
 linkedin
 aws
 awslabs
+amzn
 square
 paypal
 yahoo
@@ -32,3 +34,15 @@ ibm
 adafruit
 rackerlabs
 auth0
+coinbase
+kickstarter
+indiegogo
+venmo
+spotify
+acquia
+canonicalltd
+mulesoft
+sugarcrm
+clever
+samsung
+microsoft

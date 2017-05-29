@@ -13,6 +13,8 @@
     "@types/superagent": "^2.0.36"
   },
   "dependencies": {
+    "@types/mongodb": "^2.2.2",
+    "mongodb": "^2.2.27",
     "superagent": "^3.5.2",
     "typescript": "^2.3.3"
   }

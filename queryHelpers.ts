@@ -1,11 +1,11 @@
 import * as request from 'superagent';
-import { secrets } from './secrets'
-const fs = require('fs')
+import { AccessToken } from './secrets'
+import { readFileContents } from "./util";
 
 async function executeQuery(query:string, substitutions?:any) {
   return request
     .post("https://api.github.com/graphql")
-    .set("Authorization", `bearer ${secrets.accessToken}`)
+    .set("Authorization", `bearer ${AccessToken}`)
     .set('content-type', 'application/json')
     .send({
       query: query,
@@ -13,13 +13,9 @@ async function executeQuery(query:string, substitutions?:any) {
     })
 }
 
+
 async function getQuery(name:string):Promise<any> {
-  return new Promise((resolve, reject) => {
-    fs.readFile(`./queries/${name}.graphql`, 'utf8', function (err:any,data:string) {
-      if (err)reject(err);
-      resolve(data);
-    });
-  })
+  return readFileContents(`./queries/${name}.graphql`);
 }
 
 export async function runQuery(queryName:string, queryVariables:any) {
@@ -28,6 +24,9 @@ export async function runQuery(queryName:string, queryVariables:any) {
       return executeQuery(queryContents, queryVariables)
     })
     .then((queryResults) => {
+      if (queryResults.body.errors) {
+        throw queryResults.body.errors;
+      }
       return queryResults.body.data;
     });
 }

@@ -1,0 +1,25 @@
+query($org_name:String!, $repo_name:String!) {
+  repository(owner: $org_name, name:$repo_name) {
+    repositoryTopics(first: 10) {
+      nodes {
+        topic {
+          name
+          id
+        }
+      }
+    }
+    watchers(first: 100) {
+      edges {
+        node {
+          name
+          id
+          company
+        }
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+    }
+  }
+}

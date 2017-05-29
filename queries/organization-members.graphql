@@ -1,0 +1,20 @@
+query($org_name:String!, $page_cursor:String) {
+    organization(login:$org_name) {
+    members(first: 100, after: $page_cursor) {
+      edges {
+        node {
+          name
+          company
+          email
+          id
+          isHireable
+          websiteUrl
+        }
+      }
+      pageInfo {
+        endCursor
+        hasNextPage
+      }
+    }
+  }
+}

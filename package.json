@@ -1,0 +1,19 @@
+{
+  "name": "github-graphql-queries",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc -w"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/superagent": "^2.0.36"
+  },
+  "dependencies": {
+    "superagent": "^3.5.2",
+    "typescript": "^2.3.3"
+  }
+}

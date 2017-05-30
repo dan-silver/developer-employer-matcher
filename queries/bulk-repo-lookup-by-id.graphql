@@ -1,0 +1,9 @@
+query {
+  nodes(ids:["MDEwOlJlcG9zaXRvcnkyNDE5NTMzOQ==", "MDEwOlJlcG9zaXRvcnk0ODY0MTIwNg=="]) {
+      ... on Repository {
+          nameWithOwner
+          id
+          descriptionHTML
+      }    
+  }
+}

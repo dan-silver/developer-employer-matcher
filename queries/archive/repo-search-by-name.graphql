@@ -1,0 +1,12 @@
+query {
+  search(first: 100, type: REPOSITORY, query: "angular") {
+    edges {
+      node {
+        ... on Repository {
+          nameWithOwner
+          id 
+        }
+      }
+    }
+  }
+}

@@ -4,6 +4,7 @@ query($org_name:String!, $page_cursor:String) {
       edges {
         node {
           name
+          login
           company
           email
           id

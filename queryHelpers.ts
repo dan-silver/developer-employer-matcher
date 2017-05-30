@@ -28,5 +28,8 @@ export async function runQuery(queryName:string, queryVariables:any) {
         throw queryResults.body.errors;
       }
       return queryResults.body.data;
-    });
+    })
+    .catch((e) => {
+      debugger;
+    })
 }

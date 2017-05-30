@@ -1,0 +1,19 @@
+query ($user_name: String!) {
+  user(login: $user_name) {
+    repositories(first: 15) {
+      edges {
+        node {
+          nameWithOwner
+          primaryLanguage {
+            id
+          }
+          languages(first: 4) {
+             nodes {
+              id
+            }
+          }
+        }
+      }
+    }
+  }
+}

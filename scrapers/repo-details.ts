@@ -1,10 +1,10 @@
 import { Db, ObjectID, InsertWriteOpResult } from "mongodb";
-import { GitHubUser, EdgeResponse, GitHubRepository, Repository, NodesResponse } from "../gitHubTypes";
+import { GitHubUser, EdgeResponse, GitHubRepository, Repository, NodesResponse, GitHubResourceScraperFn } from "../gitHubTypes";
 import { runQuery } from "../queryHelpers";
 import { updateReposDetails } from "../mongoHelpers";
 
 // finds 100 users in DB that don't have repositories field set, finds and creates repos
-export async function scrapeRepoDetails(db: Db) {
+export let scrapeRepoDetails:GitHubResourceScraperFn = async (db:Db) => {
   let repoCollection = db.collection('repos');
   let reposCursor = repoCollection.find({nameWithOwner:null}).limit(100);
 

@@ -1,5 +1,4 @@
-import { ObjectID } from "mongodb";
-
+import { ObjectID, Db } from "mongodb";
 
 export interface Edge<T> {
   node: T
@@ -78,4 +77,8 @@ export interface User extends MongoObject {
 
 export interface Organization {
   members: EdgePageResponse<GitHubUser>
+}
+
+export interface GitHubResourceScraperFn {
+  (db:Db): Promise<any>
 }

@@ -9,20 +9,13 @@ export async function getOrgMembersPage(orgName: string, organizationId: any, pa
     org_name: orgName,
     page_cursor: pageCursor
   }).then((res) => {
-    let users:User[] = [];
-
     let org:GitHubOrganization = res.organization;
     
+    let users:User[] = [];
     for (let member of org.members.edges) {
       users.push({
-        name:         member.node.name,
-        login:        member.node.login,
-        company:      member.node.company,
-        email:        member.node.email,
-        id:           member.node.id,
-        isHireable:   member.node.isHireable,
-        websiteUrl:   member.node.websiteUrl,
-        organization: organizationId          // change to organizations[]?
+        id: member.node.id,
+        organizations: [organizationId]
       });
     }
 

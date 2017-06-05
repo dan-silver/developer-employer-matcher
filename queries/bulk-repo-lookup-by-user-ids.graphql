@@ -2,7 +2,7 @@ query($userIds:[ID!]!) {
   nodes(ids:$userIds) {
     ... on User {
       id
-      repositories(first: 100) {
+      repositories(first: 10) {
         nodes {
           id
         }

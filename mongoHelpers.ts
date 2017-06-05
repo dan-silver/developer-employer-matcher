@@ -19,22 +19,27 @@ export async function findOrCreateOrganization(db: Db, orgName: string):Promise<
 export async function insertUsers(db:Db, users:User[]) {
     let bulkOp = db.collection('users').initializeUnorderedBulkOp();
     for (let user of users)
-        bulkOp.find( {id: user.id} ).upsert().update( { $set: user } );
+        bulkOp.find( {id: user.id} ).upsert().update( { $addToSet: {organizations: {$each: user.organizations}} } );
     return bulkOp.execute();
 
     // return db.collection('users').insertMany(users);
 }
 
 export async function insertRepos(db:Db, repos:Repository[]) {
-    return db.collection('repos').insertMany(repos);
+    let bulkOp = db.collection('repos').initializeUnorderedBulkOp();
+    for (let repo of repos)
+        bulkOp.find( {id: repo.id} ).upsert().update( { $set: {id: repo.id} } );
+    return bulkOp.execute();
+
+    // return db.collection('repos').insertMany(repos);
 }
 
 export async function updateUserRepos(db:Db, gitHubUserId:string, repoIds:ObjectID[]) {
     return db.collection('users').update(
         { id: gitHubUserId },
         {
-            $set: {
-                repos: repoIds
+            $addToSet: {
+                repos: {$each: repoIds}
             }
         }
     ).catch((e) => {

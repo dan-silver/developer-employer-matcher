@@ -12,7 +12,7 @@ MongoClient
   .then(async (db) => {
     // await setConstraints(db);
 
-    await scrapeAllOrganizations(db);
+    // await scrapeAllOrganizations(db);
 
     scrapeGitHubResource(db, scrapeUserRepos,   2000, "User repos");
     scrapeGitHubResource(db, scrapeRepoDetails, 2000, "Repo details");
@@ -24,12 +24,16 @@ function scrapeGitHubResource(db:Db, scraperFn:GitHubResourceScraperFn, defaultI
     let inProgress = false;
     setInterval(async () => {
       if (inProgress == true) {
-        console.log(`${label}: skipping round`)
+        console.warn(`${label}: skipping round`)
         return;
       }
       inProgress = true;
       console.log(`${label}: starting`)
-      await scraperFn(db);
+      try {
+        await scraperFn(db);
+      } catch(e) {
+        console.error(e);
+      }
       inProgress = false;
       console.log(`${label}: done`)
     }, 1000 * 2);

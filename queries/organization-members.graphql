@@ -3,13 +3,7 @@ query($org_name:String!, $page_cursor:String) {
     members(first: 100, after: $page_cursor) {
       edges {
         node {
-          name
-          login
-          company
-          email
           id
-          isHireable
-          websiteUrl
         }
       }
       pageInfo {

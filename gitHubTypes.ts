@@ -62,21 +62,21 @@ export interface Repository extends MongoObject {
 }
 
 export interface User extends MongoObject {
-  login: string
-  company: string
-  email: string
-  id: string
-  isHireable: boolean
-  name: string
-  websiteUrl: string
+  login?: string
+  company?: string
+  email?: string
+  id?: string
+  isHireable?: boolean
+  name?: string
+  websiteUrl?: string
 
-  organization: ObjectID
-
+  // references to other collections
+  organizations?: ObjectID[]
   repositories?: ObjectID[]
 }
 
 export interface Organization extends MongoObject {
-  
+
 }
 
 export interface GitHubOrganization {

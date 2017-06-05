@@ -11,8 +11,8 @@ export let scrapeUserRepos:GitHubResourceScraperFn = async (db:Db) =>  {
   let users:GitHubUser[] = await userCursor.toArray();
   let userIds = users.map((user) => user.id);
 
-  let usersWithRepoData = await getUsersRepos(db, userIds);
-  for (let user of usersWithRepoData) {
+  let usersWithRepoIds = await getUsersRepos(db, userIds);
+  for (let user of usersWithRepoIds) {
     let insertedRepos:InsertWriteOpResult;
     let userHasRepos = false;
     if (user.repositories.nodes.length != 0) {

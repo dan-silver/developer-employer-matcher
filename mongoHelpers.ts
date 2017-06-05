@@ -1,7 +1,7 @@
 import { Db, ObjectID } from "mongodb";
-import { EdgePageResponse, GitHubUser, Repository, User } from "./gitHubTypes";
+import { EdgePageResponse, GitHubUser, Repository, User, Organization } from "./gitHubTypes";
 
-export async function findOrCreateOrganization(db: Db, orgName: string) {
+export async function findOrCreateOrganization(db: Db, orgName: string):Promise<Organization> {
   // @todo, create or find in one operation
   const organizations = db.collection('organizations');
   await organizations.updateOne(

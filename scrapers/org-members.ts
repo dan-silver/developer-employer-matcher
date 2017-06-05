@@ -1,5 +1,5 @@
 import { runQuery } from "../queryHelpers";
-import { Organization, User } from "../gitHubTypes";
+import { GitHubOrganization, User, Organization } from "../gitHubTypes";
 import { findOrCreateOrganization, insertUsers } from "../mongoHelpers";
 import { Db } from "mongodb";
 import { readLineSeparatedFile } from "../util";
@@ -11,7 +11,7 @@ export async function getOrgMembersPage(orgName: string, organizationId: any, pa
   }).then((res) => {
     let users:User[] = [];
 
-    let org:Organization = res.organization;
+    let org:GitHubOrganization = res.organization;
     
     for (let member of org.members.edges) {
       users.push({
@@ -22,7 +22,7 @@ export async function getOrgMembersPage(orgName: string, organizationId: any, pa
         id:           member.node.id,
         isHireable:   member.node.isHireable,
         websiteUrl:   member.node.websiteUrl,
-        organization: organizationId
+        organization: organizationId          // change to organizations[]?
       });
     }
 
@@ -32,11 +32,11 @@ export async function getOrgMembersPage(orgName: string, organizationId: any, pa
 
 // Finds all org members, pages through responses and inserts into Mongo
 async function scrapeOrgMembers(db:Db, orgName:string) {
-  let organization = await findOrCreateOrganization(db, orgName);
+  let org = await findOrCreateOrganization(db, orgName);
 
   let pageCursor:string;
   while (true) {
-    let {pageInfo, users} = await getOrgMembersPage(orgName, organization._id, pageCursor);    
+    let {pageInfo, users} = await getOrgMembersPage(orgName, org._id, pageCursor);    
     await insertUsers(db, users);
 
     if (pageInfo.hasNextPage) {

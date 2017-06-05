@@ -75,7 +75,11 @@ export interface User extends MongoObject {
   repositories?: ObjectID[]
 }
 
-export interface Organization {
+export interface Organization extends MongoObject {
+  
+}
+
+export interface GitHubOrganization {
   members: EdgePageResponse<GitHubUser>
 }
 

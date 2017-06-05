@@ -1,0 +1,14 @@
+query {
+  nodes(ids:["MDQ6VXNlcjEyMTQxNjE=", "MDQ6VXNlcjg4NzYxMQ=="]) {
+      ... on User {
+        id
+        repositories(first: 2) {
+          edges {
+            node {
+              id
+            }
+          }
+        }
+      }    
+  }
+}

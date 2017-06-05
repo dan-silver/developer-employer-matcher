@@ -1,0 +1,16 @@
+query($repoIds:[ID!]!) {
+  nodes(ids:$repoIds) {
+    ... on Repository {
+      id
+      nameWithOwner
+      primaryLanguage {
+        id
+      }
+      languages(first: 5) {
+        nodes {
+          id
+        }
+      }
+    }
+  }
+}

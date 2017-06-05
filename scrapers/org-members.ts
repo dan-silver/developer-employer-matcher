@@ -1,5 +1,5 @@
 import { runQuery } from "../queryHelpers";
-import { Organization } from "../gitHubTypes";
+import { Organization, User } from "../gitHubTypes";
 import { findOrCreateOrganization, insertUsers } from "../mongoHelpers";
 import { Db } from "mongodb";
 import { readLineSeparatedFile } from "../util";
@@ -9,12 +9,24 @@ export async function getOrgMembersPage(orgName: string, organizationId: any, pa
     org_name: orgName,
     page_cursor: pageCursor
   }).then((res) => {
+    let users:User[] = [];
+
     let org:Organization = res.organization;
+    
     for (let member of org.members.edges) {
-      member.node.organization = organizationId;
+      users.push({
+        name:         member.node.name,
+        login:        member.node.login,
+        company:      member.node.company,
+        email:        member.node.email,
+        id:           member.node.id,
+        isHireable:   member.node.isHireable,
+        websiteUrl:   member.node.websiteUrl,
+        organization: organizationId
+      });
     }
 
-    return org.members; 
+    return {pageInfo: org.members.pageInfo, users}; 
   });
 }
 
@@ -24,11 +36,11 @@ async function scrapeOrgMembers(db:Db, orgName:string) {
 
   let pageCursor:string;
   while (true) {
-    let orgMembersPage = await getOrgMembersPage(orgName, organization._id, pageCursor);    
-    await insertUsers(db, orgMembersPage);
+    let {pageInfo, users} = await getOrgMembersPage(orgName, organization._id, pageCursor);    
+    await insertUsers(db, users);
 
-    if (orgMembersPage.pageInfo.hasNextPage) {
-      pageCursor = orgMembersPage.pageInfo.endCursor;
+    if (pageInfo.hasNextPage) {
+      pageCursor = pageInfo.endCursor;
     } else {
       console.log(`Finished scraping ${orgName} members`)
       break;

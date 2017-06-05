@@ -1,0 +1,11 @@
+query ($user_name: String!) {
+  user(login: $user_name) {
+    repositories(first: 10) {
+      edges {
+        node {
+          id
+        }
+      }
+    }
+  }
+}

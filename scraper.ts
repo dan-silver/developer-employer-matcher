@@ -1,7 +1,7 @@
 import { MongoClient, Db } from 'mongodb'
 import { scrapeOrgMembers } from "./scrapers/org-members";
 import { scrapeUserRepos } from "./scrapers/user-repos";
-import { setConstraints, findOrCreateOrganization } from "./mongoHelpers";
+import { setConstraints, insertShellObjects } from "./mongoHelpers";
 import { scrapeRepoDetails } from "./scrapers/repo-details";
 import { GitHubResourceScraperFn } from "./gitHubTypes";
 import { readLineSeparatedFile } from "./util";
@@ -43,10 +43,7 @@ function scrapeGitHubResource(db:Db, scraperFn:GitHubResourceScraperFn, defaultI
     }, 1000 * 2);
 }
 
-
 export async function seedProjectOrganizationIds(db:Db) {
   let orgIds = await readLineSeparatedFile(`data/organizations.txt`);
-  for (let orgId of orgIds) {
-    await findOrCreateOrganization(db, orgId);
-  }
+  await insertShellObjects(db.collection('organizations'), orgIds.map((id) => {return {id}}));
 }

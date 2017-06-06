@@ -9,7 +9,7 @@ export async function readFileContents(path:string):Promise<any> {
   }) 
 }
 
-export async function readLineSeparatedFile(fileName:string) {
+export async function readLineSeparatedFile(fileName:string):Promise<string[]> {
   let fileContents = await readFileContents(fileName);
   return fileContents.split("\n");
 }

@@ -5,21 +5,6 @@ export async function getUsersByIds(db: Db, ids: string[]) {
     return db.collection('users').find({id: {$in: ids}});
 }
 
-export async function findOrCreateOrganization(db: Db, orgId: string):Promise<Organization> {
-  // @todo, create or find in one operation
-  const organizations = db.collection('organizations');
-  await organizations.updateOne(
-        {"id": orgId},
-        {
-            "$setOnInsert": {"id": orgId},
-        },
-        {upsert:true}
-    )
-
-  return organizations.findOne({name: orgId})
-
-}
-
 export async function setOrgMembers(db:Db, org:Organization, userIds: ObjectID[]) {
     return db.collection('organizations').updateOne( {_id: org._id},
         { $addToSet: {members: {$each: userIds}} } );

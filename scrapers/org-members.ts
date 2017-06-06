@@ -1,6 +1,6 @@
 import { runQuery } from "../queryHelpers";
 import { GitHubOrganization, User, Organization, NodesResponse, EdgePageResponse, GitHubResourceScraperFn } from "../gitHubTypes";
-import { findOrCreateOrganization, setOrgMembers, getUsersByIds, insertShellObjects, setUsersOrganization } from "../mongoHelpers";
+import { setOrgMembers, getUsersByIds, insertShellObjects, setUsersOrganization } from "../mongoHelpers";
 import { Db, ObjectID } from "mongodb";
 import { readLineSeparatedFile } from "../util";
 

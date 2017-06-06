@@ -13,7 +13,7 @@ export let scrapeUserMembership:GitHubResourceScraperFn = async (db:Db) =>  {
   let userIds = users.map((user) => user.id);
 
   let usersWithOrgIds = await getUserMembership(db, userIds);
-  for (let user of usersWithOrgIds) {
+  for (let user of usersWithOrgIds.nodes) {
     let insertedOrgs:BulkWriteResult;
     if (user.organizations.nodes.length != 0) {
       insertedOrgs = await insertShellObjects(db.collection('organizations'), user.organizations.nodes as any);
@@ -23,10 +23,6 @@ export let scrapeUserMembership:GitHubResourceScraperFn = async (db:Db) =>  {
   }
 }
 
-async function getUserMembership(db:Db, userIds:string[]) {
-  return runQuery("bulk-user-membership", {
-    userIds: userIds
-  }).then((res:NodesResponse<GitHubUser>) => {
-    return res.nodes;
-  });
+async function getUserMembership(db:Db, userIds:string[]):Promise<NodesResponse<GitHubUser>> {
+  return runQuery("bulk-user-membership", { userIds });
 }

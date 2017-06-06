@@ -15,7 +15,7 @@ export let scrapeRepoDetails:GitHubResourceScraperFn = async (db:Db) => {
   let repoDetails = await getRepoDetails(db, repoIds);
   // convert raw data from GitHub to mongo schema
   let mongoRepos:Repository[] = [];
-  for (let repo of repoDetails) {
+  for (let repo of repoDetails.nodes) {
     mongoRepos.push({
       id: repo.id,
       languages: repo.languages.nodes.map(lang => lang.id),
@@ -26,10 +26,6 @@ export let scrapeRepoDetails:GitHubResourceScraperFn = async (db:Db) => {
   if (mongoRepos.length > 0) await updateMongoNodeDetails(db, 'repos', mongoRepos);
 }
 
-async function getRepoDetails(db:Db, repoIds:string[]) {
-  return runQuery("repo-lookup-by-ids", {
-    repoIds: repoIds
-  }).then((res:NodesResponse<GitHubRepository>) => {
-    return res.nodes;
-  });
+async function getRepoDetails(db:Db, repoIds:string[]):Promise<NodesResponse<GitHubRepository>> {
+  return runQuery("repo-lookup-by-ids", { repoIds });
 }

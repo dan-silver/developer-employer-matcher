@@ -13,7 +13,7 @@ export let scrapeUserRepos:GitHubResourceScraperFn = async (db:Db) =>  {
   let userIds = users.map((user) => user.id);
 
   let usersWithRepoIds = await getUsersRepos(db, userIds);
-  for (let user of usersWithRepoIds) {
+  for (let user of usersWithRepoIds.nodes) {
     let insertedRepos:BulkWriteResult;
     if (user.repositories.nodes.length != 0) {
       insertedRepos = await insertShellObjects(db.collection('repos'), user.repositories.nodes as any);
@@ -23,14 +23,6 @@ export let scrapeUserRepos:GitHubResourceScraperFn = async (db:Db) =>  {
   }
 }
 
-async function getUsersRepos(db:Db, userIds:string[]) {
-  if (userIds.indexOf("MDEwOlJlcG9zaXRvcnk5MjU3OTM3MQ==") != -1) {
-    debugger;
-    userIds.splice(userIds.indexOf("MDEwOlJlcG9zaXRvcnk5MjU3OTM3MQ=="));
-  }
-  return runQuery("bulk-repo-lookup-by-user-ids", {
-    userIds: userIds
-  }).then((res:NodesResponse<GitHubUser>) => {
-    return res.nodes;
-  });
+async function getUsersRepos(db:Db, userIds:string[]):Promise<NodesResponse<GitHubUser>> {
+  return runQuery("bulk-repo-lookup-by-user-ids", { userIds });
 }

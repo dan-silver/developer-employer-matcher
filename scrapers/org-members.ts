@@ -1,12 +1,12 @@
 import { runQuery } from "../queryHelpers";
-import { GitHubOrganization, User, Organization, NodesResponse, EdgePageResponse, GitHubResourceScraperFn } from "../gitHubTypes";
+import { GitHubOrganization, User, Organization, NodesResponse, EdgePageResponse, GitHubResourceScraperFn, MongoNode } from "../gitHubTypes";
 import { setOrgMembers, getUsersByIds, insertShellObjects, setUsersOrganization } from "../mongoHelpers";
 import { Db, ObjectID } from "mongodb";
 import { readLineSeparatedFile } from "../util";
 
-async function getOrgMembersPage(orgId: string, pageCursor: string) {  
+async function getOrgsMembershipPage(orgIds: string[], pageCursor: string) {
   return runQuery("organization-members", {
-    orgIds: [orgId],
+    orgIds,
     page_cursor: pageCursor
   }).then((res:NodesResponse<GitHubOrganization>) => {
 
@@ -31,13 +31,13 @@ export let scrapeOrgMembers:GitHubResourceScraperFn = async (db:Db) => {
 
   let pageCursor:string;
   while (true) {
-    let {pageInfo, users} = await getOrgMembersPage(orgs[0].id, pageCursor);    
-    await insertShellObjects(db.collection('users'), users);
+    let {pageInfo, users} = await getOrgsMembershipPage(orgs.map(org => org.id), pageCursor);
+    let insertedUsers = await insertShellObjects(db.collection('users'), users);
 
+    // @todo don't hardcode orgs[0]
     await setUsersOrganization(db, users, orgs[0]);
 
-    let insertedUsers:User[] = await (await getUsersByIds(db, users.map(u => u.id))).toArray();
-    await setOrgMembers(db, orgs[0], insertedUsers.map(u => u._id));
+    await setOrgMembers(db, orgs[0], insertedUsers.getUpsertedIds().map(((a:MongoNode) => a._id)));
 
     if (pageInfo.hasNextPage) {
       pageCursor = pageInfo.endCursor;

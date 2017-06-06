@@ -15,17 +15,12 @@ export let scrapeUserRepos:GitHubResourceScraperFn = async (db:Db) =>  {
   let usersWithRepoIds = await getUsersRepos(db, userIds);
   for (let user of usersWithRepoIds) {
     let insertedRepos:BulkWriteResult;
-    let userHasRepos = false;
     if (user.repositories.nodes.length != 0) {
-      userHasRepos = true;
       insertedRepos = await insertShellObjects(db.collection('repos'), user.repositories.nodes as any);
     }
 
-    await updateUserRepos(db, user.id, userHasRepos ? insertedRepos.getUpsertedIds().map((a:any) => a._id) : []);
-    // console.log(`Found ${user.id} has ${userHasRepos ? insertedRepos.insertedCount : 0} repos`);
+    await updateUserRepos(db, user.id, insertedRepos ? insertedRepos.getUpsertedIds().map((a:any) => a._id) : []);
   }
-
-  // console.log(`Finished finding repos for batch of ${usersWithRepoData.length} users`)
 }
 
 async function getUsersRepos(db:Db, userIds:string[]) {

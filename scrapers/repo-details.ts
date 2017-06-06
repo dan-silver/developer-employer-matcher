@@ -1,7 +1,7 @@
 import { Db, ObjectID, InsertWriteOpResult } from "mongodb";
 import { GitHubUser, EdgeResponse, GitHubRepository, Repository, NodesResponse, GitHubResourceScraperFn } from "../gitHubTypes";
 import { runQuery } from "../queryHelpers";
-import { updateReposDetails } from "../mongoHelpers";
+import { updateMongoNodeDetails } from "../mongoHelpers";
 
 // finds 100 users in DB that don't have repositories field set, finds and creates repos
 export let scrapeRepoDetails:GitHubResourceScraperFn = async (db:Db) => {
@@ -18,19 +18,15 @@ export let scrapeRepoDetails:GitHubResourceScraperFn = async (db:Db) => {
   for (let repo of repoDetails) {
     mongoRepos.push({
       id: repo.id,
-      languages: repo.languages.nodes.map((lang) => lang.id),
+      languages: repo.languages.nodes.map(lang => lang.id),
       nameWithOwner: repo.nameWithOwner,
       primaryLanguage: repo.primaryLanguage ? repo.primaryLanguage.id : null
     })
   }
-  if (mongoRepos.length > 0) await updateReposDetails(db, mongoRepos);
+  if (mongoRepos.length > 0) await updateMongoNodeDetails(db, 'repos', mongoRepos);
 }
 
 async function getRepoDetails(db:Db, repoIds:string[]) {
-  if (repoIds.indexOf("MDEwOlJlcG9zaXRvcnk5MjU3OTM3MQ==") != -1) {
-    console.log("removing MDEwOlJlcG9zaXRvcnk5MjU3OTM3MQ==")
-    repoIds.splice(repoIds.indexOf("MDEwOlJlcG9zaXRvcnk5MjU3OTM3MQ=="), 1);
-  }
   return runQuery("repo-lookup-by-ids", {
     repoIds: repoIds
   }).then((res:NodesResponse<GitHubRepository>) => {

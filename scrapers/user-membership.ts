@@ -3,7 +3,7 @@ import { GitHubUser, EdgeResponse, GitHubRepository, Repository, NodesResponse, 
 import { runQuery } from "../queryHelpers";
 import { updateUserRepos, updateUserMembership, insertShellObjects } from "../mongoHelpers";
 
-// finds 100 users in DB that don't have repositories field set, finds and creates repos
+// finds 100 users in DB that don't have organizations field set, finds and creates repos
 export let scrapeUserMembership:GitHubResourceScraperFn = async (db:Db) =>  {
   let userCollection = db.collection('users');
   let userCursor = userCollection.find({orgsScraped:null}).limit(100);
@@ -15,24 +15,15 @@ export let scrapeUserMembership:GitHubResourceScraperFn = async (db:Db) =>  {
   let usersWithOrgIds = await getUserMembership(db, userIds);
   for (let user of usersWithOrgIds) {
     let insertedOrgs:BulkWriteResult;
-    let userInOrgs = false;
     if (user.organizations.nodes.length != 0) {
-      userInOrgs = true;
       insertedOrgs = await insertShellObjects(db.collection('organizations'), user.organizations.nodes as any);
     }
 
-    await updateUserMembership(db, user.id, userInOrgs ? insertedOrgs.getUpsertedIds().map((a:any) => a._id) : []);
-    // console.log(`Found ${user.id} has ${userInOrgs ? insertedOrgs.insertedCount : 0} repos`);
+    await updateUserMembership(db, user.id, insertedOrgs ? insertedOrgs.getUpsertedIds().map((a:any) => a._id) : []);
   }
-
-  // console.log(`Finished finding repos for batch of ${usersWithRepoData.length} users`)
 }
 
 async function getUserMembership(db:Db, userIds:string[]) {
-  // if (userIds.indexOf("MDEwOlJlcG9zaXRvcnk5MjU3OTM3MQ==") != -1) {
-  //   debugger;
-  //   userIds.splice(userIds.indexOf("MDEwOlJlcG9zaXRvcnk5MjU3OTM3MQ=="));
-  // }
   return runQuery("bulk-user-membership", {
     userIds: userIds
   }).then((res:NodesResponse<GitHubUser>) => {

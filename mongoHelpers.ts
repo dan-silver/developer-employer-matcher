@@ -19,15 +19,16 @@ export async function insertShellObjects(collection:Collection, objects:MongoNod
 }
 
 export async function setUsersOrganization(db:Db, users:User[], organization:Organization) {
-    return db.collection('users').update({id: {$in: users.map(u=>u.id)}}, { $addToSet: {organizations: organization} } );
+    return db.collection('users').update({id: {$in: users.map(u=>u.id)}},
+        { $addToSet: {organizations: organization} } );
 }
 
-export async function updateUserMembership(db:Db, gitHubUserId:string, repoIds:ObjectID[]) {
+export async function updateUserMembership(db:Db, gitHubUserId:string, orgIds:ObjectID[]) {
     return db.collection('users').update(
         { id: gitHubUserId },
         {
             $addToSet: {
-                organizations: {$each: repoIds}
+                organizations: {$each: orgIds}
             },
             $set: {
                 orgsScraped: true
@@ -52,10 +53,10 @@ export async function updateUserRepos(db:Db, gitHubUserId:string, repoIds:Object
     })
 }
 
-export async function updateReposDetails(db:Db, repos:Repository[]) {
-    let bulkOp = db.collection('repos').initializeUnorderedBulkOp();
-    for (let repo of repos)
-        bulkOp.find( {id: repo.id} ).update( { $set: repo } );
+export async function updateMongoNodeDetails(db:Db, collectionName:string, nodes:MongoNode[]) {
+    let bulkOp = db.collection(collectionName).initializeUnorderedBulkOp();
+    for (let node of nodes)
+        bulkOp.find( {id: node.id} ).update( { $set: node } );
     return bulkOp.execute();
 }
 

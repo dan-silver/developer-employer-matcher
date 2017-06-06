@@ -1,0 +1,12 @@
+query($userIds:[ID!]!) {
+  nodes(ids:$userIds) {
+    ... on User {
+      id
+      organizations(first: 50) {
+        nodes {
+          id
+        }
+      }
+    }    
+  }
+}

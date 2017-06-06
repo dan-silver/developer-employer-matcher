@@ -1,49 +1,49 @@
 import { runQuery } from "../queryHelpers";
-import { GitHubOrganization, User, Organization } from "../gitHubTypes";
-import { findOrCreateOrganization, insertUsers } from "../mongoHelpers";
-import { Db } from "mongodb";
+import { GitHubOrganization, User, Organization, NodesResponse, EdgePageResponse, GitHubResourceScraperFn } from "../gitHubTypes";
+import { findOrCreateOrganization, insertUsers, setOrgMembers, getUsersByIds } from "../mongoHelpers";
+import { Db, ObjectID } from "mongodb";
 import { readLineSeparatedFile } from "../util";
 
-export async function getOrgMembersPage(orgName: string, organizationId: any, pageCursor: string) {
+async function getOrgMembersPage(orgId: string, organizationId: ObjectID, pageCursor: string) {  
   return runQuery("organization-members", {
-    org_name: orgName,
+    orgIds: [orgId],
     page_cursor: pageCursor
-  }).then((res) => {
-    let org:GitHubOrganization = res.organization;
-    
+  }).then((res:NodesResponse<GitHubOrganization>) => {
+
     let users:User[] = [];
-    for (let member of org.members.edges) {
+    for (let member of res.nodes[0].members.edges) {
       users.push({
         id: member.node.id,
         organizations: [organizationId]
       });
     }
 
-    return {pageInfo: org.members.pageInfo, users}; 
+    return {pageInfo: res.nodes[0].members.pageInfo, users}; 
   });
 }
 
 // Finds all org members, pages through responses and inserts into Mongo
-async function scrapeOrgMembers(db:Db, orgName:string) {
-  let org = await findOrCreateOrganization(db, orgName);
+export let scrapeOrgMembers:GitHubResourceScraperFn = async (db:Db) => {
+  let orgCollection = db.collection('organizations');
+  let orgCursor = orgCollection.find({members:null}).limit(1);
+
+  let orgs:Organization[] = await orgCursor.toArray();
+  if (orgs.length == 0) throw new Error("Can't find orgs without members populated");
+  
+  // let orgId = orgs.map((org) => org.id);
 
   let pageCursor:string;
   while (true) {
-    let {pageInfo, users} = await getOrgMembersPage(orgName, org._id, pageCursor);    
+    let {pageInfo, users} = await getOrgMembersPage(orgs[0].id, orgs[0]._id, pageCursor);    
     await insertUsers(db, users);
+    let insertedUsers:User[] = await (await getUsersByIds(db, users.map(u => u.id))).toArray();
+    await setOrgMembers(db, orgs[0], insertedUsers.map(u => u._id));
 
     if (pageInfo.hasNextPage) {
       pageCursor = pageInfo.endCursor;
     } else {
-      console.log(`Finished scraping ${orgName} members`)
+      console.log(`Finished scraping ${orgs[0].id} members`)
       break;
     }
-  }
-}
-
-export async function scrapeAllOrganizations(db:Db) {
-  let orgNames = await readLineSeparatedFile(`data/organizations.txt`);
-  for (let org of orgNames) {
-    await scrapeOrgMembers(db, org);
   }
 }

@@ -52,6 +52,7 @@ export interface GitHubUser extends GitHubNode {
   websiteUrl: string
 
   repositories: NodesResponse<GitHubRepository>
+  organizations: NodesResponse<GitHubOrganization>
 }
 
 export interface Repository extends MongoObject {
@@ -76,7 +77,8 @@ export interface User extends MongoObject {
 }
 
 export interface Organization extends MongoObject {
-
+  id: string
+  members?: ObjectID[]
 }
 
 export interface GitHubOrganization {

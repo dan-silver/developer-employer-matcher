@@ -1,15 +1,18 @@
-query($org_name:String!, $page_cursor:String) {
-    organization(login:$org_name) {
-    members(first: 100, after: $page_cursor) {
-      edges {
-        node {
-          id
+query($orgIds:[ID!]!, $page_cursor:String) {
+  nodes(ids:$orgIds) {
+    ... on Organization {
+      id
+      members(first: 100, after: $page_cursor) {
+        edges {
+          node {
+            id
+          }
+        }
+        pageInfo {
+          endCursor
+          hasNextPage
         }
       }
-      pageInfo {
-        endCursor
-        hasNextPage
-      }
-    }
+    }    
   }
 }

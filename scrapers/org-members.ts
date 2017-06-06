@@ -1,10 +1,10 @@
 import { runQuery } from "../queryHelpers";
 import { GitHubOrganization, User, Organization, NodesResponse, EdgePageResponse, GitHubResourceScraperFn } from "../gitHubTypes";
-import { findOrCreateOrganization, insertUsers, setOrgMembers, getUsersByIds } from "../mongoHelpers";
+import { findOrCreateOrganization, setOrgMembers, getUsersByIds, insertShellObjects, setUsersOrganization } from "../mongoHelpers";
 import { Db, ObjectID } from "mongodb";
 import { readLineSeparatedFile } from "../util";
 
-async function getOrgMembersPage(orgId: string, organizationId: ObjectID, pageCursor: string) {  
+async function getOrgMembersPage(orgId: string, pageCursor: string) {  
   return runQuery("organization-members", {
     orgIds: [orgId],
     page_cursor: pageCursor
@@ -13,8 +13,7 @@ async function getOrgMembersPage(orgId: string, organizationId: ObjectID, pageCu
     let users:User[] = [];
     for (let member of res.nodes[0].members.edges) {
       users.push({
-        id: member.node.id,
-        organizations: [organizationId]
+        id: member.node.id
       });
     }
 
@@ -29,13 +28,14 @@ export let scrapeOrgMembers:GitHubResourceScraperFn = async (db:Db) => {
 
   let orgs:Organization[] = await orgCursor.toArray();
   if (orgs.length == 0) throw new Error("Can't find orgs without members populated");
-  
-  // let orgId = orgs.map((org) => org.id);
 
   let pageCursor:string;
   while (true) {
-    let {pageInfo, users} = await getOrgMembersPage(orgs[0].id, orgs[0]._id, pageCursor);    
-    await insertUsers(db, users);
+    let {pageInfo, users} = await getOrgMembersPage(orgs[0].id, pageCursor);    
+    await insertShellObjects(db.collection('users'), users);
+
+    await setUsersOrganization(db, users, orgs[0]);
+
     let insertedUsers:User[] = await (await getUsersByIds(db, users.map(u => u.id))).toArray();
     await setOrgMembers(db, orgs[0], insertedUsers.map(u => u._id));
 

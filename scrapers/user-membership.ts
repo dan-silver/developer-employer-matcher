@@ -1,7 +1,7 @@
 import { Db, ObjectID, InsertWriteOpResult, BulkWriteResult } from "mongodb";
 import { GitHubUser, EdgeResponse, GitHubRepository, Repository, NodesResponse, GitHubResourceScraperFn } from "../gitHubTypes";
 import { runQuery } from "../queryHelpers";
-import { insertRepos, updateUserRepos, updateUserMembership, insertOrgs } from "../mongoHelpers";
+import { updateUserRepos, updateUserMembership, insertShellObjects } from "../mongoHelpers";
 
 // finds 100 users in DB that don't have repositories field set, finds and creates repos
 export let scrapeUserMembership:GitHubResourceScraperFn = async (db:Db) =>  {
@@ -18,7 +18,7 @@ export let scrapeUserMembership:GitHubResourceScraperFn = async (db:Db) =>  {
     let userInOrgs = false;
     if (user.organizations.nodes.length != 0) {
       userInOrgs = true;
-      insertedOrgs = await insertOrgs(db, user.organizations.nodes as any);
+      insertedOrgs = await insertShellObjects(db.collection('organizations'), user.organizations.nodes as any);
     }
 
     await updateUserMembership(db, user.id, userInOrgs ? insertedOrgs.getUpsertedIds().map((a:any) => a._id) : []);

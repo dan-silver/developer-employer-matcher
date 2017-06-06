@@ -31,8 +31,9 @@ export interface GitHubLanguage {
 }
 
 
-export interface MongoObject {
+export interface MongoNode {
   _id?: ObjectID
+  id?: string
 }
 
 export interface GitHubRepository extends GitHubNode {
@@ -55,18 +56,16 @@ export interface GitHubUser extends GitHubNode {
   organizations: NodesResponse<GitHubOrganization>
 }
 
-export interface Repository extends MongoObject {
-  id: string
+export interface Repository extends MongoNode {
   nameWithOwner?: string
   primaryLanguage?: string
   languages?: string[]
 }
 
-export interface User extends MongoObject {
+export interface User extends MongoNode {
   login?: string
   company?: string
   email?: string
-  id?: string
   isHireable?: boolean
   name?: string
   websiteUrl?: string
@@ -76,8 +75,7 @@ export interface User extends MongoObject {
   repositories?: ObjectID[]
 }
 
-export interface Organization extends MongoObject {
-  id: string
+export interface Organization extends MongoNode {
   members?: ObjectID[]
 }
 

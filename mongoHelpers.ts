@@ -1,5 +1,5 @@
-import { Db, ObjectID } from "mongodb";
-import { EdgePageResponse, GitHubUser, Repository, User, Organization } from "./gitHubTypes";
+import { Db, ObjectID, Collection } from "mongodb";
+import { EdgePageResponse, GitHubUser, Repository, User, Organization, MongoNode } from "./gitHubTypes";
 
 export async function getUsersByIds(db: Db, ids: string[]) {
     return db.collection('users').find({id: {$in: ids}});
@@ -20,37 +20,21 @@ export async function findOrCreateOrganization(db: Db, orgId: string):Promise<Or
 
 }
 
-export async function insertUsers(db:Db, users:User[]) {
-    let bulkOp = db.collection('users').initializeUnorderedBulkOp();
-    for (let user of users)
-        bulkOp.find( {id: user.id} ).upsert().update( { $addToSet: {organizations: {$each: user.organizations}} } );
-    return bulkOp.execute();
-
-    // return db.collection('users').insertMany(users);
-}
-
 export async function setOrgMembers(db:Db, org:Organization, userIds: ObjectID[]) {
     return db.collection('organizations').updateOne( {_id: org._id},
         { $addToSet: {members: {$each: userIds}} } );
 
 }
 
-
-// combine with insertOrgs to insertShellObject<T>
-export async function insertRepos(db:Db, repos:Repository[]) {
-    let bulkOp = db.collection('repos').initializeUnorderedBulkOp();
-    for (let repo of repos)
-        bulkOp.find( {id: repo.id} ).upsert().update( { $set: {id: repo.id} } );
+export async function insertShellObjects(collection:Collection, objects:MongoNode[]) {
+    let bulkOp = collection.initializeUnorderedBulkOp();
+    for (let object of objects)
+        bulkOp.find( {id: object.id} ).upsert().update( { $set: {id: object.id} } );
     return bulkOp.execute();
-
-    // return db.collection('repos').insertMany(repos);
 }
 
-export async function insertOrgs(db:Db, orgs:Organization[]) {
-    let bulkOp = db.collection('organizations').initializeUnorderedBulkOp();
-    for (let org of orgs)
-        bulkOp.find( {id: org.id} ).upsert().update( { $set: {id: org.id} } );
-    return bulkOp.execute();
+export async function setUsersOrganization(db:Db, users:User[], organization:Organization) {
+    return db.collection('users').update({id: {$in: users.map(u=>u.id)}}, { $addToSet: {organizations: organization} } );
 }
 
 export async function updateUserMembership(db:Db, gitHubUserId:string, repoIds:ObjectID[]) {

@@ -1,16 +1,13 @@
 import { Db, ObjectID, InsertWriteOpResult, BulkWriteResult } from "mongodb";
 import { GitHubUser, EdgeResponse, GitHubRepository, Repository, NodesResponse, GitHubResourceScraperFn } from "../gitHubTypes";
 import { runQuery } from "../queryHelpers";
-import { updateUserRepos, updateUserMembership, insertShellObjects } from "../mongoHelpers";
+import { updateUserMembership, insertShellObjects, nodeCursorToArrayOfNodeIds } from "../mongoHelpers";
 
 // finds 100 users in DB that don't have organizations field set, finds and creates repos
 export let scrapeUserMembership:GitHubResourceScraperFn = async (db:Db) =>  {
-  let userCollection = db.collection('users');
-  let userCursor = userCollection.find({orgsScraped:null}).limit(100);
+  let userCursor = db.collection('users').find({orgsScraped:null}).limit(100);
 
-  let users:GitHubUser[] = await userCursor.toArray();
-  if (users.length == 0) throw new Error("Can't find users without membership details populated");
-  let userIds = users.map((user) => user.id);
+  let userIds = await nodeCursorToArrayOfNodeIds(userCursor);
 
   let usersWithOrgIds = await getUserMembership(db, userIds);
   for (let user of usersWithOrgIds.nodes) {
@@ -23,6 +20,6 @@ export let scrapeUserMembership:GitHubResourceScraperFn = async (db:Db) =>  {
   }
 }
 
-async function getUserMembership(db:Db, userIds:string[]):Promise<NodesResponse<GitHubUser>> {
-  return runQuery("bulk-user-membership", { userIds });
+async function getUserMembership(db:Db, nodeIds:string[]) {
+  return runQuery<NodesResponse<GitHubUser>>("bulk-user-membership", { nodeIds });
 }

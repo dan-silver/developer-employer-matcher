@@ -1,5 +1,5 @@
-query($orgIds:[ID!]!, $page_cursor:String) {
-  nodes(ids:$orgIds) {
+query($nodeIds:[ID!]!, $page_cursor:String) {
+  nodes(ids:$nodeIds) {
     ... on Organization {
       id
       members(first: 100, after: $page_cursor) {

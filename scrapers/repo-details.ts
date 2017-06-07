@@ -1,17 +1,14 @@
 import { Db, ObjectID, InsertWriteOpResult } from "mongodb";
 import { GitHubUser, EdgeResponse, GitHubRepository, Repository, NodesResponse, GitHubResourceScraperFn } from "../gitHubTypes";
 import { runQuery } from "../queryHelpers";
-import { updateMongoNodeDetails } from "../mongoHelpers";
+import { updateMongoNodeDetails, nodeCursorToArrayOfNodeIds } from "../mongoHelpers";
 
 // finds 100 users in DB that don't have repositories field set, finds and creates repos
 export let scrapeRepoDetails:GitHubResourceScraperFn = async (db:Db) => {
-  let repoCollection = db.collection('repos');
-  let reposCursor = repoCollection.find({nameWithOwner:null}).limit(100);
-
-  let repos:Repository[] = await reposCursor.toArray();
-  if (repos.length == 0) throw new Error("Can't find repos without details populated");
+  let reposCursor = db.collection('repositories').find({nameWithOwner:null}).limit(100);
   
-  let repoIds = repos.map((repo) => repo.id);
+  let repoIds = await nodeCursorToArrayOfNodeIds(reposCursor);
+
   let repoDetails = await getRepoDetails(db, repoIds);
   // convert raw data from GitHub to mongo schema
   let mongoRepos:Repository[] = [];
@@ -23,9 +20,9 @@ export let scrapeRepoDetails:GitHubResourceScraperFn = async (db:Db) => {
       primaryLanguage: repo.primaryLanguage ? repo.primaryLanguage.id : null
     })
   }
-  if (mongoRepos.length > 0) await updateMongoNodeDetails(db, 'repos', mongoRepos);
+  if (mongoRepos.length > 0) await updateMongoNodeDetails(db, 'repositories', mongoRepos);
 }
 
-async function getRepoDetails(db:Db, repoIds:string[]):Promise<NodesResponse<GitHubRepository>> {
-  return runQuery("repo-lookup-by-ids", { repoIds });
+async function getRepoDetails(db:Db, nodeIds:string[]) {
+  return runQuery<NodesResponse<GitHubRepository>>("repo-lookup-by-ids", { nodeIds });
 }

@@ -4,9 +4,9 @@ import { setOrgMembers, getUsersByIds, insertShellObjects, setUsersOrganization 
 import { Db, ObjectID } from "mongodb";
 import { readLineSeparatedFile } from "../util";
 
-async function getOrgsMembershipPage(orgIds: string[], pageCursor: string) {
+async function getOrgsMembershipPage(nodeIds: string[], pageCursor: string) {
   return runQuery("organization-members", {
-    orgIds,
+    nodeIds,
     page_cursor: pageCursor
   }).then((res:NodesResponse<GitHubOrganization>) => {
 
@@ -21,10 +21,19 @@ async function getOrgsMembershipPage(orgIds: string[], pageCursor: string) {
   });
 }
 
+
+/**
+ * 
+ * @todo
+ * Change .limit(1) to 100
+ * For each org returned, save the endCursor in mongo for another process to
+ * pickup and fetch remaining members
+ * 
+ */
+
 // Finds all org members, pages through responses and inserts into Mongo
 export let scrapeOrgMembers:GitHubResourceScraperFn = async (db:Db) => {
-  let orgCollection = db.collection('organizations');
-  let orgCursor = orgCollection.find({members:null}).limit(1);
+  let orgCursor = db.collection('organizations').find({members:null}).limit(1);
 
   let orgs:Organization[] = await orgCursor.toArray();
   if (orgs.length == 0) throw new Error("Can't find orgs without members populated");

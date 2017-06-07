@@ -1,5 +1,5 @@
-query($repoIds:[ID!]!) {
-  nodes(ids:$repoIds) {
+query($nodeIds:[ID!]!) {
+  nodes(ids:$nodeIds) {
     ... on Repository {
       id
       nameWithOwner

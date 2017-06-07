@@ -18,7 +18,7 @@ async function getQuery(name:string):Promise<any> {
   return readFileContents(`./queries/${name}.graphql`);
 }
 
-export async function runQuery(queryName:string, queryVariables:any) {
+export async function runQuery<T>(queryName:string, queryVariables:any):Promise<T> {
   return getQuery(queryName)
     .then((queryContents) => {
       return executeQuery(queryContents, queryVariables)

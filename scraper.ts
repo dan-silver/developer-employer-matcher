@@ -45,5 +45,5 @@ function scrapeGitHubResource(db:Db, scraperFn:GitHubResourceScraperFn, defaultI
 
 export async function seedProjectOrganizationIds(db:Db) {
   let orgIds = await readLineSeparatedFile(`data/organizations.txt`);
-  await insertShellObjects(db.collection('organizations'), orgIds.map((id) => {return {id}}));
+  await insertShellObjects(db.collection('organizations'), orgIds.map(id => {return {id}}));
 }

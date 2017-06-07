@@ -1,4 +1,4 @@
-import { Db, ObjectID, Collection } from "mongodb";
+import { Db, ObjectID, Collection, Cursor } from "mongodb";
 import { EdgePageResponse, GitHubUser, Repository, User, Organization, MongoNode } from "./gitHubTypes";
 
 export async function getUsersByIds(db: Db, ids: string[]) {
@@ -45,7 +45,7 @@ export async function updateUserRepos(db:Db, gitHubUserId:string, repoIds:Object
         { id: gitHubUserId },
         {
             $addToSet: {
-                repos: {$each: repoIds}
+                repositories: {$each: repoIds}
             }
         }
     ).catch((e) => {
@@ -63,6 +63,13 @@ export async function updateMongoNodeDetails(db:Db, collectionName:string, nodes
 
 export async function setConstraints(db:Db) {
     await db.collection('users').createIndex( { "id": 1 }, { unique: true } )
-    await db.collection('repos').createIndex( { "id": 1 }, { unique: true } )
+    await db.collection('repositories').createIndex( { "id": 1 }, { unique: true } )
     await db.collection('organizations').createIndex( { "id": 1 }, { unique: true } )
+}
+
+export async function nodeCursorToArrayOfNodeIds(startingNodes:Cursor<MongoNode>) {
+    let nodes = await startingNodes.toArray();
+    if (nodes.length == 0) throw new Error("Can't find nodes");
+    let nodeIds = nodes.map(nodes => nodes.id);
+    return nodeIds;
 }

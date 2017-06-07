@@ -1,5 +1,5 @@
-query($userIds:[ID!]!) {
-  nodes(ids:$userIds) {
+query($nodeIds:[ID!]!) {
+  nodes(ids:$nodeIds) {
     ... on User {
       id
       organizations(first: 50) {

@@ -30,7 +30,6 @@ export interface GitHubLanguage {
   name: string
 }
 
-
 export interface MongoNode {
   _id?: ObjectID
   id?: string

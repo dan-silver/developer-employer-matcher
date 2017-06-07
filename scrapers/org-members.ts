@@ -1,31 +1,11 @@
 import { runQuery } from "../queryHelpers";
 import { GitHubOrganization, User, Organization, NodesResponse, EdgePageResponse, GitHubResourceScraperFn, MongoNode } from "../gitHubTypes";
-import { setOrgMembers, getUsersByIds, insertShellObjects, setUsersOrganization } from "../mongoHelpers";
+import { setOrgMembers, getUsersByIds, insertShellObjects, setUsersOrganization, nodeCursorToArrayOfNodeIds } from "../mongoHelpers";
 import { Db, ObjectID } from "mongodb";
 import { readLineSeparatedFile } from "../util";
-
-async function getOrgsMembershipPage(nodeIds: string[], pageCursor: string) {
-  return runQuery("organization-members", {
-    nodeIds,
-    page_cursor: pageCursor
-  }).then((res:NodesResponse<GitHubOrganization>) => {
-
-    let users:User[] = [];
-    for (let member of res.nodes[0].members.edges) {
-      users.push({
-        id: member.node.id
-      });
-    }
-
-    return {pageInfo: res.nodes[0].members.pageInfo, users}; 
-  });
-}
-
-
 /**
  * 
  * @todo
- * Change .limit(1) to 100
  * For each org returned, save the endCursor in mongo for another process to
  * pickup and fetch remaining members
  * 
@@ -33,26 +13,34 @@ async function getOrgsMembershipPage(nodeIds: string[], pageCursor: string) {
 
 // Finds all org members, pages through responses and inserts into Mongo
 export let scrapeOrgMembers:GitHubResourceScraperFn = async (db:Db) => {
-  let orgCursor = db.collection('organizations').find({members:null}).limit(1);
+  let orgCursor = db.collection('organizations').find({members:null}).limit(100);
 
-  let orgs:Organization[] = await orgCursor.toArray();
-  if (orgs.length == 0) throw new Error("Can't find orgs without members populated");
+  let orgIds = await nodeCursorToArrayOfNodeIds(orgCursor);
 
   let pageCursor:string;
-  while (true) {
-    let {pageInfo, users} = await getOrgsMembershipPage(orgs.map(org => org.id), pageCursor);
-    let insertedUsers = await insertShellObjects(db.collection('users'), users);
+  let res = await getOrgsMembershipPage(orgIds, pageCursor);
+  for (let org of res.nodes) {
+    let orgDbRef:Organization = await db.collection('organizations').findOne({id: org.id});
+    let members = org.members.edges.map(u => u.node);
+    let insertedUsers = await insertShellObjects(db.collection('users'), members);
+    await setUsersOrganization(db, members, orgDbRef);
+    await setOrgMembers(db, orgDbRef, insertedUsers.getUpsertedIds().map(((a:any) => a._id)));
 
-    // @todo don't hardcode orgs[0]
-    await setUsersOrganization(db, users, orgs[0]);
-
-    await setOrgMembers(db, orgs[0], insertedUsers.getUpsertedIds().map(((a:MongoNode) => a._id)));
-
-    if (pageInfo.hasNextPage) {
-      pageCursor = pageInfo.endCursor;
-    } else {
-      console.log(`Finished scraping ${orgs[0].id} members`)
-      break;
-    }
   }
+
+  //   if (pageInfo.hasNextPage) {
+  //     pageCursor = pageInfo.endCursor;
+  //   } else {
+  //     console.log(`Finished scraping ${orgs[0].id} members`)
+  //     break;
+  //   }
+  // }
+}
+
+
+async function getOrgsMembershipPage(nodeIds: string[], pageCursor: string) {
+  return runQuery<NodesResponse<GitHubOrganization>>("organization-members", {
+    nodeIds,
+    page_cursor: pageCursor
+  });
 }

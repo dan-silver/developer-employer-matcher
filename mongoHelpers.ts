@@ -1,5 +1,5 @@
 import { Db, ObjectID, Collection, Cursor } from "mongodb";
-import { EdgePageResponse, GitHubUser, Repository, User, Organization, MongoNode } from "./gitHubTypes";
+import { EdgePageResponse, GitHubUser, Repository, User, Organization, MongoNode, GitHubOrganization } from "./gitHubTypes";
 
 export async function getUsersByIds(db: Db, ids: string[]) {
     return db.collection('users').find({id: {$in: ids}});
@@ -18,9 +18,9 @@ export async function insertShellObjects(collection:Collection, objects:MongoNod
     return bulkOp.execute();
 }
 
-export async function setUsersOrganization(db:Db, users:User[], organization:Organization) {
-    return db.collection('users').update({id: {$in: users.map(u=>u.id)}},
-        { $addToSet: {organizations: organization} } );
+export async function setUsersOrganization(db:Db, users:GitHubUser[], organization:Organization) {
+    return db.collection('users').update({id: {$in: users.map(u => u.id)}},
+        { $addToSet: {organizations: organization._id} } );
 }
 
 export async function updateUserMembership(db:Db, gitHubUserId:string, orgIds:ObjectID[]) {
@@ -39,9 +39,9 @@ export async function updateUserMembership(db:Db, gitHubUserId:string, orgIds:Ob
     })
 }
 
-
+// @todo merge with setOrgMembers?
 export async function updateUserRepos(db:Db, gitHubUserId:string, repoIds:ObjectID[]) {
-    return db.collection('users').update(
+    return db.collection('users').updateOne(
         { id: gitHubUserId },
         {
             $addToSet: {
@@ -69,7 +69,7 @@ export async function setConstraints(db:Db) {
 
 export async function nodeCursorToArrayOfNodeIds(startingNodes:Cursor<MongoNode>) {
     let nodes = await startingNodes.toArray();
-    if (nodes.length == 0) throw new Error("Can't find nodes");
-    let nodeIds = nodes.map(nodes => nodes.id);
-    return nodeIds;
+    if (nodes.length == 0)
+        throw new Error("Can't find nodes");
+    return nodes.map(nodes => nodes.id);
 }

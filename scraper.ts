@@ -2,7 +2,7 @@ import { MongoClient, Db } from 'mongodb'
 import { scrapeOrgMembers } from "./scrapers/org-members";
 import { scrapeUserRepos } from "./scrapers/user-repos";
 import { setConstraints, insertShellObjects } from "./mongoHelpers";
-import { scrapeRepoDetails } from "./scrapers/repo-details";
+import { scrapeNodeDetails } from "./scrapers/node-details";
 import { GitHubResourceScraperFn } from "./gitHubTypes";
 import { readLineSeparatedFile } from "./util";
 import { scrapeUserMembership } from "./scrapers/user-membership";
@@ -16,19 +16,37 @@ MongoClient
 
     seedProjectOrganizationIds(db);
 
-    scrapeGitHubResource(db, scrapeOrgMembers, 2000, "Org members");
-    scrapeGitHubResource(db, scrapeUserRepos,   2000, "User repos");
-    scrapeGitHubResource(db, scrapeRepoDetails, 2000, "Repo details");
-    scrapeGitHubResource(db, scrapeUserMembership, 2000, "User membership");
+    scrapeGitHubResource(db, scrapeOrgMembers, 10*1000, "Org members");
+    scrapeGitHubResource(db, scrapeUserRepos,   10*1000, "User repos");
+    scrapeGitHubResource(db, scrapeUserMembership, 10*1000, "User membership");
+
+
+    // user details
+    scrapeGitHubResource(db, () => {
+        scrapeNodeDetails(db.collection('users'), {login: null});
+      }, 2000, "User details");    
+    
+    // repo details
+    scrapeGitHubResource(db, () => {
+        scrapeNodeDetails(db.collection('repositories'), {nameWithOwner: null});
+      }, 2000, "Repo details");    
+
+    // org details
+    scrapeGitHubResource(db, () => {
+        scrapeNodeDetails(db.collection('organizations'), {login: null});
+      }, 2000, "organization details");    
+
+
+
   });
 
 // Helps scrape GitHub Graphql on an interval
 // @todo handle rate limiting
-function scrapeGitHubResource(db:Db, scraperFn:GitHubResourceScraperFn, defaultInterval: number, label: string) {
+function scrapeGitHubResource(db:Db, scraperFn:Function, defaultInterval: number, label: string) {
     let inProgress = false;
     setInterval(async () => {
       if (inProgress == true) {
-        console.warn(`${label}: skipping round`)
+        console.warn(`${label}: skipping round, request in progress`)
         return;
       }
       inProgress = true;

@@ -9,7 +9,8 @@ export let scrapeUserRepos:GitHubResourceScraperFn = async (db:Db) =>  {
 
   let userIds = await nodeCursorToArrayOfNodeIds(userCursor);
 
-  let usersWithRepoIds = await getUsersRepos(db, userIds);
+  let usersWithRepoIds = await runQuery<NodesResponse<GitHubUser>>("bulk-repo-lookup-by-user-ids", { nodeIds: userIds });
+
   for (let user of usersWithRepoIds.nodes) {
     let insertedRepos:BulkWriteResult;
     if (user.repositories.nodes.length != 0) {
@@ -18,8 +19,4 @@ export let scrapeUserRepos:GitHubResourceScraperFn = async (db:Db) =>  {
 
     await updateUserRepos(db, user.id, insertedRepos ? insertedRepos.getUpsertedIds().map((a:any) => a._id) : []);
   }
-}
-
-async function getUsersRepos(db:Db, nodeIds:string[]) {
-  return runQuery<NodesResponse<GitHubUser>>("bulk-repo-lookup-by-user-ids", { nodeIds });
 }

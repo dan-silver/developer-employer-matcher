@@ -53,8 +53,8 @@ export async function updateUserRepos(db:Db, gitHubUserId:string, repoIds:Object
     })
 }
 
-export async function updateMongoNodeDetails(db:Db, collectionName:string, nodes:MongoNode[]) {
-    let bulkOp = db.collection(collectionName).initializeUnorderedBulkOp();
+export async function updateMongoNodeDetails(collection:Collection, nodes:MongoNode[]) {
+    let bulkOp = collection.initializeUnorderedBulkOp();
     for (let node of nodes)
         bulkOp.find( {id: node.id} ).update( { $set: node } );
     return bulkOp.execute();
@@ -69,7 +69,5 @@ export async function setConstraints(db:Db) {
 
 export async function nodeCursorToArrayOfNodeIds(startingNodes:Cursor<MongoNode>) {
     let nodes = await startingNodes.toArray();
-    if (nodes.length == 0)
-        throw new Error("Can't find nodes");
     return nodes.map(nodes => nodes.id);
 }

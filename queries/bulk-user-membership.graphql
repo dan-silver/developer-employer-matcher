@@ -2,7 +2,7 @@ query($nodeIds:[ID!]!) {
   nodes(ids:$nodeIds) {
     ... on User {
       id
-      organizations(first: 50) {
+      organizations(first: 5) { # errors if above 5
         nodes {
           id
         }

@@ -1,5 +1,16 @@
 query($nodeIds:[ID!]!) {
   nodes(ids:$nodeIds) {
+
+    ... on User {
+    	id
+      login
+      company
+      email
+      isHireable
+      name
+      websiteUrl
+    }
+
     ... on Repository {
       id
       nameWithOwner
@@ -12,5 +23,13 @@ query($nodeIds:[ID!]!) {
         }
       }
     }
+
+
+    ... on Organization {
+      id
+      login
+      name
+    }
+
   }
 }

@@ -76,10 +76,14 @@ export interface User extends MongoNode {
 
 export interface Organization extends MongoNode {
   members?: ObjectID[]
+  login?: string
+  name?: string
 }
 
 export interface GitHubOrganization extends GitHubNode {
   members: EdgePageResponse<GitHubUser>
+  login?: string
+  name?: string
 }
 
 export interface GitHubResourceScraperFn {

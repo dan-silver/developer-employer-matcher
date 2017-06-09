@@ -28,8 +28,5 @@ export async function runQuery<T>(queryName:string, queryVariables:any):Promise<
         throw queryResults.body.errors;
       }
       return queryResults.body.data;
-    })
-    .catch((e) => {
-      debugger;
-    })
+    });
 }

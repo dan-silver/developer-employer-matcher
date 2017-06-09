@@ -1,5 +1,5 @@
 ## Developer Employer Matcher
-Job recomendations for developers based on their GitHub activity
+*Job recomendations for developers based on their GitHub activity*
 
 
 Part 1 - Scrape user, organization, and repository metadata from Github into MongoDB. **Complete!**

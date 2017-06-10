@@ -1,0 +1,1 @@
+export const MongoUrl = 'mongodb://localhost:4000/users';

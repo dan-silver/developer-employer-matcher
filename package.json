@@ -16,6 +16,7 @@
     "@types/mongodb": "^2.2.2",
     "mongodb": "^2.2.27",
     "superagent": "^3.5.2",
-    "typescript": "^2.3.3"
+    "typescript": "^2.3.3",
+    "csv-write-stream": "^2.0.0"
   }
 }

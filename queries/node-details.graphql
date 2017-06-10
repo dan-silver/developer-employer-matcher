@@ -31,5 +31,10 @@ query($nodeIds:[ID!]!) {
       name
     }
 
+    ... on Language {
+      id
+      name
+    }
+
   }
 }

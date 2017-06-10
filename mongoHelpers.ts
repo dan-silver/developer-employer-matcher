@@ -11,6 +11,10 @@ export async function setOrgMembers(db:Db, org:Organization, userIds: ObjectID[]
 
 }
 
+export async function insertShellObjectsFromIds(collection:Collection, objectIds: string[]) {
+    return insertShellObjects(collection, objectIds.map((id:any) => {return {id}}))
+}
+
 export async function insertShellObjects(collection:Collection, objects:MongoNode[]) {
     let bulkOp = collection.initializeUnorderedBulkOp();
     for (let object of objects)
@@ -65,9 +69,10 @@ export async function setConstraints(db:Db) {
     await db.collection('users').createIndex( { "id": 1 }, { unique: true } )
     await db.collection('repositories').createIndex( { "id": 1 }, { unique: true } )
     await db.collection('organizations').createIndex( { "id": 1 }, { unique: true } )
+    await db.collection('languages').createIndex( { "id": 1 }, { unique: true } )
 }
 
 export async function nodeCursorToArrayOfNodeIds(startingNodes:Cursor<MongoNode>) {
     let nodes = await startingNodes.toArray();
-    return nodes.map(nodes => nodes.id);
+    return nodes.map(node => node.id);
 }

@@ -1,5 +1,7 @@
 import { ObjectID, Db } from "mongodb";
 
+export type NodeType = "User" | "Repository" | "Organization" | "Language";
+
 export interface Edge<T> {
   node: T
 }
@@ -25,10 +27,11 @@ export interface EdgePageResponse<T> extends EdgeResponse<T> {
   pageInfo: PageInfo
 }
 
-export interface GitHubLanguage {
+export interface GitHubLanguage extends GitHubNode {
   id: string
   name: string
 }
+
 
 export interface MongoNode {
   _id?: ObjectID
@@ -77,6 +80,10 @@ export interface User extends MongoNode {
 export interface Organization extends MongoNode {
   members?: ObjectID[]
   login?: string
+  name?: string
+}
+
+export interface Language extends MongoNode {
   name?: string
 }
 

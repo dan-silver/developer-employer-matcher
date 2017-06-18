@@ -36,7 +36,10 @@ export function convertGitHubNodesToMongo(nodes:GitHubNode[], nodeType:NodeType)
         id: raw.id,
         languages: raw.languages.nodes.map((lang) => lang.id),
         nameWithOwner: raw.nameWithOwner,
-        primaryLanguage: raw.primaryLanguage ? raw.primaryLanguage.id: null
+        primaryLanguage: raw.primaryLanguage ? raw.primaryLanguage.id: null,
+        createdAt: new Date(raw.createdAt),
+        pushedAt: new Date(raw.pushedAt)
+
       } as Repository
     });
   } else {

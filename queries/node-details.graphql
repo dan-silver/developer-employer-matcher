@@ -14,6 +14,8 @@ query($nodeIds:[ID!]!) {
     ... on Repository {
       id
       nameWithOwner
+      createdAt # Identifies the date and time when the object was created.
+      pushedAt # Identifies when the repository was last pushed to.
       primaryLanguage {
         id
       }

@@ -28,21 +28,21 @@ MongoClient
         scrapeNodeDetails(db.collection('users'), "User", {login: null});
       }, 2000, "User details");    
     
-    // // repo details
+    // repo details
     scrapeGitHubResource(db, () => {
         scrapeNodeDetails(db.collection('repositories'), "Repository", {nameWithOwner: null});
       }, 2000, "Repo details");    
 
-    // // org details
+    // org details
     scrapeGitHubResource(db, () => {
         scrapeNodeDetails(db.collection('organizations'), "Organization", {login: null});
       }, 2000, "organization details");
 
 
     // language details
-    // scrapeGitHubResource(db, () => {
-    //   scrapeNodeDetails(db.collection('languages'), "Language", {name: null});
-    // }, 30 * 1000, "language details");
+    scrapeGitHubResource(db, () => {
+      scrapeNodeDetails(db.collection('languages'), "Language", {name: null});
+    }, 30 * 1000, "language details");
 
   });
 

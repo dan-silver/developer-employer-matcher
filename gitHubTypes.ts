@@ -40,6 +40,8 @@ export interface MongoNode {
 
 export interface GitHubRepository extends GitHubNode {
   nameWithOwner?: string
+  createdAt?: string // need to parse date from string
+  pushedAt?: string // need to parse date from string
   primaryLanguage?: GitHubLanguage
   languages?: {
     nodes: GitHubLanguage[]
@@ -60,6 +62,8 @@ export interface GitHubUser extends GitHubNode {
 
 export interface Repository extends MongoNode {
   nameWithOwner?: string
+  createdAt?: Date
+  pushedAt?: Date
   primaryLanguage?: string
   languages?: string[]
 }
